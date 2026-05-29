@@ -192,11 +192,11 @@ function pillClass(v){if(!v||/tbd|—/i.test(v))return 'tbd';if(/^yes|likely|✓
 function fmtDate(d){
   if(!d)return '';
   const s=String(d).trim();
-  // YYYY-MM-DD (with optional time): parse directly to avoid UTC-shift
-  if(/^\d{4}-\d{2}-\d{2}/.test(s)){const p=s.slice(0,10).split('-');return `${+p[1]}/${+p[2]}/${p[0]}`;}
-  // Full date string from Google Sheets ("Wed May 27 2026 00:00:00 GMT-0700 ...")
-  const dt=new Date(s);
-  return isNaN(dt)?s:`${dt.getMonth()+1}/${dt.getDate()}/${dt.getFullYear()}`;
+  let dt;
+  // YYYY-MM-DD: construct as local date to avoid UTC-shift
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){const p=s.slice(0,10).split('-');dt=new Date(+p[0],+p[1]-1,+p[2]);}
+  else dt=new Date(s);
+  return isNaN(dt)?s:dt.toDateString();
 }
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function setBar(p){document.getElementById('loadbar').style.width=p+'%';}
