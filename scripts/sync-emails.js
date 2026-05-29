@@ -132,24 +132,12 @@ async function postRecord(apiUrl, action, payload) {
 async function upsertSyncStatus(apiUrl, summary) {
   // We keep one special row with id="__email_sync_status__" for the UI to read.
   // Try update first; if it fails (row doesn't exist) fall back to add.
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD only
+  const record = { id: '__email_sync_status__', status: 'sync', position: today, company: summary };
   try {
-    await postRecord(apiUrl, 'update', {
-      record: {
-        id: '__email_sync_status__',
-        status: 'sync',
-        position: new Date().toISOString(),
-        company: summary
-      }
-    });
+    await postRecord(apiUrl, 'update', { record });
   } catch (_) {
-    await postRecord(apiUrl, 'add', {
-      record: {
-        id: '__email_sync_status__',
-        status: 'sync',
-        position: new Date().toISOString(),
-        company: summary
-      }
-    });
+    await postRecord(apiUrl, 'add', { record });
   }
 }
 

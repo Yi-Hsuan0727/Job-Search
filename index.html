@@ -236,15 +236,16 @@ function updateMailSyncChip(){
     note.textContent='';
     return;
   }
-  const iso=emailSyncMeta.position; // ISO timestamp stored in position field
+  const dateVal=emailSyncMeta.position; // YYYY-MM-DD date stored in position field
   let dateStr='';
-  if(iso){
-    const d=new Date(iso);
+  if(dateVal){
+    // Parse as local date (append T00:00 to avoid UTC-offset shifting the day)
+    const d=new Date(dateVal+'T00:00');
     dateStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   }
   chip.classList.add('active');
   label.textContent=`Mail Sync · ${dateStr}`;
-  chip.title=`Last email sync: ${dateStr}\n${emailSyncMeta.company||''}`;
+  chip.title=`Last email sync: ${dateVal||'unknown'}\n${emailSyncMeta.company||''}`;
   note.textContent=`email sync: ${dateStr}`;
 }
 
