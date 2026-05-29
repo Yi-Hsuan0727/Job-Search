@@ -1,0 +1,15 @@
+{
+  "name": "apple-mail-mcp",
+  "version": "1.0.0",
+  "description": "MCP server — exposes Apple Mail to Claude Code via AppleScript",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

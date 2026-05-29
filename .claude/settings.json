@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "apple-mail": {
+      "command": "node",
+      "args": ["mail-mcp/server.js"],
+      "env": {}
+    }
+  }
+}

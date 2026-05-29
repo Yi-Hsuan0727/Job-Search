@@ -13,6 +13,12 @@
     --shadow:6px 6px 0 var(--ink);--shadow-sm:3px 3px 0 var(--ink);
     --pending:#ffd23f;--sent:#4ea8ff;--interview:#b388ff;--offer:#00e05a;--rejected:#ff5c5c;--dropped:#bdbdbd;
   }
+  .mail-sync-chip{display:inline-flex;align-items:center;gap:6px;font-family:'Unbounded',sans-serif;
+    font-size:11px;font-weight:600;padding:8px 14px;border:2.5px solid var(--ink);background:var(--white);
+    box-shadow:2px 2px 0 var(--ink);white-space:nowrap;cursor:default;}
+  .mail-sync-chip .dot{width:8px;height:8px;border-radius:50%;background:#bbb;flex-shrink:0;}
+  .mail-sync-chip.active .dot{background:var(--green-dark);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Space Grotesk',sans-serif;background:var(--paper);color:var(--ink);padding:32px 24px 80px;
     background-image:radial-gradient(var(--ink) 1px,transparent 1px);background-size:26px 26px;background-position:-13px -13px;min-height:100vh;}
@@ -92,6 +98,9 @@
       <p class="sub">Synced to your Google Sheet. View and edit from any browser.</p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="mail-sync-chip" id="mailSyncChip" title="Email auto-sync status">
+        <span class="dot"></span><span id="mailSyncLabel">Mail Sync</span>
+      </div>
       <button class="btn ghost sm" id="refreshBtn">↻ Refresh</button>
       <button class="btn ghost sm" id="exportBtn">⬇ Export CSV</button>
       <button class="btn" id="addBtn">+ Add Application</button>
@@ -123,7 +132,7 @@
     <table><thead><tr id="headRow"></tr></thead><tbody id="tbody"></tbody></table>
   </div>
 
-  <footer>Click a column header to sort · ✎ edit · ✕ delete · Total: <span id="footCount">0</span> · <span id="syncNote"></span></footer>
+  <footer>Click a column header to sort · ✎ edit · ✕ delete · Total: <span id="footCount">0</span> · <span id="syncNote"></span> · <span id="mailSyncNote"></span></footer>
 </div>
 
 <div class="overlay" id="overlay">
@@ -175,7 +184,7 @@ const COLS=[
 const FIELDS=['status','position','company','industry','jobtype','role','opt','h1b','location','posted','applied'];
 const STATUS_COLORS={pending:'var(--pending)',sent:'var(--sent)',interview:'var(--interview)',offer:'var(--offer)',rejected:'var(--rejected)',dropped:'var(--dropped)'};
 
-let data=[], sortKey='applied', sortDir=-1, editId=null, busy=false;
+let data=[], sortKey='applied', sortDir=-1, editId=null, busy=false, emailSyncMeta=null;
 
 if(!API_URL){const s=localStorage.getItem(URLKEY);if(s)API_URL=s;}
 
@@ -204,13 +213,39 @@ async function loadData(){
   document.getElementById('setupBanner').style.display='none';
   setBar(30);showStatus('Loading from your Sheet…','ok');
   try{
-    data=await api('get');
+    const allRows=await api('get');
+    // Separate the internal email-sync status row from real records
+    emailSyncMeta = allRows.find(r=>r.id==='__email_sync_status__') || null;
+    data = allRows.filter(r=>r.id!=='__email_sync_status__');
     setBar(100);showStatus('','ok');
     document.getElementById('syncNote').textContent='synced to Google Sheets';
+    updateMailSyncChip();
   }catch(err){
     showStatus('Could not reach the Sheet: '+err.message+'  — check the URL and that the deployment is set to "Anyone".','err');
     document.getElementById('setupBanner').style.display='flex';
   }finally{setTimeout(()=>setBar(0),400);render();}
+}
+
+function updateMailSyncChip(){
+  const chip=document.getElementById('mailSyncChip');
+  const label=document.getElementById('mailSyncLabel');
+  const note=document.getElementById('mailSyncNote');
+  if(!emailSyncMeta){
+    chip.classList.remove('active');
+    label.textContent='Mail Sync';
+    note.textContent='';
+    return;
+  }
+  const iso=emailSyncMeta.position; // ISO timestamp stored in position field
+  let ago='';
+  if(iso){
+    const diff=Math.round((Date.now()-new Date(iso).getTime())/60000);
+    ago = diff<1?'just now':diff<60?`${diff}m ago`:`${Math.round(diff/60)}h ago`;
+  }
+  chip.classList.add('active');
+  label.textContent=`Mail Sync · ${ago}`;
+  chip.title=`Last email sync: ${iso||'unknown'}\n${emailSyncMeta.company||''}`;
+  note.textContent=`email sync: ${ago}`;
 }
 
 function renderStats(){
