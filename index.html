@@ -189,7 +189,7 @@ let data=[], sortKey='applied', sortDir=-1, editId=null, busy=false, emailSyncMe
 if(!API_URL){const s=localStorage.getItem(URLKEY);if(s)API_URL=s;}
 
 function pillClass(v){if(!v||/tbd|—/i.test(v))return 'tbd';if(/^yes|likely|✓/i.test(v))return 'yes';if(/^no\b/i.test(v))return 'no';return '';}
-function fmtDate(d){if(!d)return '';const p=String(d).split('-');return p.length===3?`${+p[1]}/${+p[2]}/${p[0]}`:d;}
+function fmtDate(d){if(!d)return '';const s=String(d).split(/[T ]/)[0];const p=s.split('-');return p.length===3?`${+p[1]}/${+p[2]}/${p[0]}`:s;}
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function setBar(p){document.getElementById('loadbar').style.width=p+'%';}
 function showStatus(msg,kind){const b=document.getElementById('statusBanner');b.textContent=msg;b.className='banner '+(kind||'ok');b.style.display=msg?'flex':'none';}
