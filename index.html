@@ -237,15 +237,15 @@ function updateMailSyncChip(){
     return;
   }
   const iso=emailSyncMeta.position; // ISO timestamp stored in position field
-  let ago='';
+  let dateStr='';
   if(iso){
-    const diff=Math.round((Date.now()-new Date(iso).getTime())/60000);
-    ago = diff<1?'just now':diff<60?`${diff}m ago`:`${Math.round(diff/60)}h ago`;
+    const d=new Date(iso);
+    dateStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   }
   chip.classList.add('active');
-  label.textContent=`Mail Sync · ${ago}`;
-  chip.title=`Last email sync: ${iso||'unknown'}\n${emailSyncMeta.company||''}`;
-  note.textContent=`email sync: ${ago}`;
+  label.textContent=`Mail Sync · ${dateStr}`;
+  chip.title=`Last email sync: ${dateStr}\n${emailSyncMeta.company||''}`;
+  note.textContent=`email sync: ${dateStr}`;
 }
 
 function renderStats(){
