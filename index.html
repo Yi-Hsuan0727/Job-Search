@@ -262,7 +262,7 @@ function renderStats(){
   const c={pending:0,sent:0,interview:0,offer:0,rejected:0,dropped:0};
   data.forEach(d=>{if(c[d.status]!==undefined)c[d.status]++;});
   const cards=[{n:data.length,l:'Total',col:'var(--ink)'},{n:c.sent,l:'Sent',col:'var(--sent)'},
-    {n:c.pending,l:'Pending',col:'var(--pending)'},{n:c.interview,l:'Interview',col:'var(--interview)'},{n:c.offer,l:'Offers',col:'var(--offer)'}];
+    {n:c.pending,l:'Pending',col:'var(--pending)'},{n:c.interview,l:'Interview',col:'var(--interview)'},{n:c.offer,l:'Offers',col:'var(--offer)'},{n:c.rejected,l:'Rejected',col:'var(--rejected)'}];
   document.getElementById('stats').innerHTML=cards.map(x=>`<div class="stat"><div class="num">${x.n}</div><div class="lbl">${x.l}</div><div class="bar" style="background:${x.col}"></div></div>`).join('');
   document.getElementById('footCount').textContent=data.length;
 }
