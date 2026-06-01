@@ -275,7 +275,16 @@ function render(){
   const q=document.getElementById('search').value.toLowerCase();
   const sf=document.getElementById('statusFilter').value;
   let rows=data.filter(d=>(!sf||d.status===sf)&&(!q||[d.position,d.company,d.location,d.role,d.industry].join(' ').toLowerCase().includes(q)));
-  rows.sort((a,b)=>{let x=(a[sortKey]||'').toLowerCase(),y=(b[sortKey]||'').toLowerCase();return x<y?-sortDir:x>y?sortDir:0;});
+  const DATE_KEYS=['posted','applied'];
+  rows.sort((a,b)=>{
+    if(DATE_KEYS.includes(sortKey)){
+      const x=new Date(a[sortKey]||'').getTime()||0;
+      const y=new Date(b[sortKey]||'').getTime()||0;
+      return (x-y)*sortDir;
+    }
+    let x=(a[sortKey]||'').toLowerCase(),y=(b[sortKey]||'').toLowerCase();
+    return x<y?-sortDir:x>y?sortDir:0;
+  });
   const tb=document.getElementById('tbody');
   if(!rows.length){tb.innerHTML=`<tr><td colspan="12" class="empty">${API_URL?'No applications match.':'Connect your Sheet above to begin.'}</td></tr>`;return;}
   tb.innerHTML=rows.map(d=>`<tr class="row">
