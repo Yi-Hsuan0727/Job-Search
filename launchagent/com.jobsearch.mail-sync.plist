@@ -2,31 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- Label must match the filename (without .plist) -->
   <key>Label</key>
   <string>com.jobsearch.mail-sync</string>
-
-  <!-- setup.sh replaces PLACEHOLDER_NODE and PLACEHOLDER_PROJECT_PATH -->
   <key>ProgramArguments</key>
   <array>
     <string>PLACEHOLDER_NODE</string>
     <string>PLACEHOLDER_PROJECT_PATH/scripts/sync-emails.js</string>
   </array>
-
-  <!-- Run every 10 minutes (600 seconds) -->
   <key>StartInterval</key>
   <integer>600</integer>
-
-  <!-- Also run immediately on load -->
   <key>RunAtLoad</key>
   <true/>
-
   <key>EnvironmentVariables</key>
   <dict>
     <key>ANTHROPIC_API_KEY</key>
     <string>PLACEHOLDER_API_KEY</string>
   </dict>
-
   <key>StandardOutPath</key>
   <string>/tmp/job-search-sync.log</string>
   <key>StandardErrorPath</key>

@@ -9,8 +9,6 @@ const { writeFileSync, unlinkSync } = require('fs');
 const { join } = require('path');
 const { tmpdir } = require('os');
 
-// Run an AppleScript file and return stdout as a string.
-// Writing to a temp file avoids shell-escaping issues entirely.
 function runScript(appleScript) {
   const tmp = join(tmpdir(), `mail-mcp-${Date.now()}.scpt`);
   writeFileSync(tmp, appleScript, 'utf8');
@@ -26,7 +24,6 @@ const server = new Server(
   { capabilities: { tools: {} } }
 );
 
-// ── Tool definitions ──────────────────────────────────────────────────────────
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
@@ -36,14 +33,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: 'list_emails',
-      description: 'List emails from a mailbox with id, subject, sender, date, and read status. Use this to discover new job-related emails.',
+      description: 'List emails from a mailbox with id, subject, sender, date, and read status.',
       inputSchema: {
         type: 'object',
         properties: {
           mailbox:    { type: 'string',  description: 'Mailbox name (default: INBOX)' },
           count:      { type: 'number',  description: 'Maximum emails to return (default: 40)' },
           days_back:  { type: 'number',  description: 'Look back N days from today (default: 7)' },
-          unread_only:{ type: 'boolean', description: 'If true, return only unread messages (default: false)' }
+          unread_only:{ type: 'boolean', description: 'If true, return only unread messages' }
         }
       }
     },
@@ -75,12 +72,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   ]
 }));
 
-// ── Tool handlers ─────────────────────────────────────────────────────────────
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args = {} } = request.params;
 
   try {
-    // ── list_mailboxes ──────────────────────────────────────────────────────
     if (name === 'list_mailboxes') {
       const result = runScript(`
 tell application "Mail"
@@ -93,11 +88,10 @@ end tell`);
       return { content: [{ type: 'text', text: result || '(no mailboxes found)' }] };
     }
 
-    // ── list_emails ─────────────────────────────────────────────────────────
     if (name === 'list_emails') {
-      const mailbox   = (args.mailbox || 'INBOX').replace(/"/g, '\\"');
-      const count     = Math.min(Number(args.count  || 40),  200);
-      const daysBack  = Math.min(Number(args.days_back || 7), 90);
+      const mailbox  = (args.mailbox || 'INBOX').replace(/"/g, '\\"');
+      const count    = Math.min(Number(args.count || 40), 200);
+      const daysBack = Math.min(Number(args.days_back || 7), 90);
       const unreadFilter = args.unread_only ? 'if read status of msg is false then\n' : '';
       const unreadEnd    = args.unread_only ? 'end if\n' : '';
 
@@ -107,7 +101,7 @@ tell application "Mail"
   try
     set mb to mailbox "${mailbox}"
   on error
-    return "ERROR: mailbox \\"${mailbox}\\" not found"
+    return "ERROR: mailbox not found"
   end try
   set out to ""
   set n to 0
@@ -124,9 +118,8 @@ end tell`);
       return { content: [{ type: 'text', text: result }] };
     }
 
-    // ── get_email_content ───────────────────────────────────────────────────
     if (name === 'get_email_content') {
-      const msgId  = (args.message_id || '').replace(/"/g, '\\"');
+      const msgId   = (args.message_id || '').replace(/"/g, '\\"');
       const mailbox = (args.mailbox || 'INBOX').replace(/"/g, '\\"');
 
       const result = runScript(`
@@ -146,13 +139,11 @@ end tell`);
       return { content: [{ type: 'text', text: result }] };
     }
 
-    // ── search_emails ───────────────────────────────────────────────────────
     if (name === 'search_emails') {
       const query    = (args.query || '').replace(/"/g, '\\"');
       const mailbox  = (args.mailbox || 'INBOX').replace(/"/g, '\\"');
       const daysBack = Math.min(Number(args.days_back || 30), 90);
 
-      // AppleScript's "contains" is case-insensitive by default
       const result = runScript(`
 tell application "Mail"
   set cutoff to (current date) - ${daysBack} * days
@@ -184,7 +175,6 @@ end tell`);
   }
 });
 
-// ── Start ─────────────────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);

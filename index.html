@@ -170,8 +170,6 @@
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────
-// Paste your Apps Script Web App URL between the quotes, OR leave blank
-// and enter it in the banner at the top (it's remembered in this browser).
 let API_URL = "";
 // ────────────────────────────────────────────────────────
 
@@ -211,7 +209,6 @@ async function api(action,payload){
     if(!j.ok)throw new Error(j.error||'GET failed');
     return j.rows;
   }
-  // writes: no-cors means we can't read the response, so we re-fetch after.
   await fetch(API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify(Object.assign({action},payload))});
   return null;
@@ -223,7 +220,6 @@ async function loadData(){
   setBar(30);showStatus('Loading from your Sheet…','ok');
   try{
     const allRows=await api('get');
-    // Separate the internal email-sync status row from real records
     emailSyncMeta = allRows.find(r=>r.id==='__email_sync_status__') || null;
     data = allRows.filter(r=>r.id!=='__email_sync_status__');
     setBar(100);showStatus('','ok');
@@ -245,10 +241,9 @@ function updateMailSyncChip(){
     note.textContent='';
     return;
   }
-  const dateVal=emailSyncMeta.position; // YYYY-MM-DD date stored in position field
+  const dateVal=emailSyncMeta.position;
   let dateStr='';
   if(dateVal){
-    // Parse as local date (append T00:00 to avoid UTC-offset shifting the day)
     const d=new Date(dateVal+'T00:00');
     dateStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   }
@@ -275,16 +270,7 @@ function render(){
   const q=document.getElementById('search').value.toLowerCase();
   const sf=document.getElementById('statusFilter').value;
   let rows=data.filter(d=>(!sf||d.status===sf)&&(!q||[d.position,d.company,d.location,d.role,d.industry].join(' ').toLowerCase().includes(q)));
-  const DATE_KEYS=['posted','applied'];
-  rows.sort((a,b)=>{
-    if(DATE_KEYS.includes(sortKey)){
-      const x=new Date(a[sortKey]||'').getTime()||0;
-      const y=new Date(b[sortKey]||'').getTime()||0;
-      return (x-y)*sortDir;
-    }
-    let x=(a[sortKey]||'').toLowerCase(),y=(b[sortKey]||'').toLowerCase();
-    return x<y?-sortDir:x>y?sortDir:0;
-  });
+  rows.sort((a,b)=>{let x=(a[sortKey]||'').toLowerCase(),y=(b[sortKey]||'').toLowerCase();return x<y?-sortDir:x>y?sortDir:0;});
   const tb=document.getElementById('tbody');
   if(!rows.length){tb.innerHTML=`<tr><td colspan="12" class="empty">${API_URL?'No applications match.':'Connect your Sheet above to begin.'}</td></tr>`;return;}
   tb.innerHTML=rows.map(d=>`<tr class="row">
